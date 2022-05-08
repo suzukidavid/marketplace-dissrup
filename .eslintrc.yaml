@@ -1,0 +1,88 @@
+#NEED TO BE FILED PROPOERLY!!!!
+
+# read more: https://eslint.org/docs/user-guide/configuring/language-options#specifying-environments
+# env:
+#     browser: false,
+#     es2021: true,
+#     mocha: true,
+#     node: true,
+# # read more: https://eslint.org/docs/user-guide/configuring/plugins
+# plugins:
+#     - '@typescript-eslint'
+# extends:
+#     - standard
+#     - plugin:prettier/recommended
+#     - plugin:node/recommended
+# parser: '@typescript-eslint/parser'
+# parserOptions:
+#     - ecmaVersion: 12
+# rules:
+#     # read more: https://eslint.org/docs/user-guide/configuring/rules
+#     'node/no-unsupported-features/es-syntax':
+#         - error,
+#         - ignores: ['modules']
+
+# /* From fnd
+# extends:
+#   - eslint:recommended
+#   - plugin:@typescript-eslint/eslint-recommended
+#   - plugin:@typescript-eslint/recommended
+#   - prettier
+# parser: "@typescript-eslint/parser"
+# parserOptions:
+#   project: tsconfig.json
+# plugins:
+#   - "@typescript-eslint"
+#   - "no-only-tests"
+# root: true
+# rules:
+#   "@typescript-eslint/no-floating-promises":
+#     - error
+#     - ignoreIIFE: true
+#       ignoreVoid: true
+#   "@typescript-eslint/no-inferrable-types": "off"
+#   "@typescript-eslint/no-unused-vars":
+#     - error
+#     - argsIgnorePattern: _
+#       varsIgnorePattern: _
+#   "sort-imports":
+#     - error
+#     - ignoreCase: true
+#       ignoreDeclarationSort: true
+#   "no-only-tests/no-only-tests": "error"
+# overrides:
+#  // - files: subgraph/*\*\/ *.ts
+# //  rules:
+# //  prefer-const: 0
+# */
+
+# /*
+#     From pay-on-mint
+#     module.exports = {
+#   env: {
+#       //https://eslint.org/docs/user-guide/configuring/language-options#specifying-environments
+#     browser: false,
+#     es2021: true,
+#     mocha: true,
+#     node: true,
+#   },
+#   plugins: ["@typescript-eslint"],
+#   // https://eslint.org/docs/user-guide/configuring/plugins
+#   extends: [
+#     "standard",
+#     "plugin:prettier/recommended",
+#     "plugin:node/recommended",
+#   ],
+#   parser: "@typescript-eslint/parser",
+#   parserOptions: {
+#     ecmaVersion: 12,
+#   },
+#   rules: {
+#       // https://eslint.org/docs/user-guide/configuring/rules
+#     "node/no-unsupported-features/es-syntax": [
+#       "error",
+#       { ignores: ["modules"] },
+#     ],
+#   },
+# };
+# */

@@ -1,0 +1,7 @@
+# Basic config:
+# trailingComma: "es5"
+# tabWidth: 4
+# semi: false
+# singleQuote: true
+# read more here: https://prettier.io/docs/en/configuration.html
+# and add or delete if needed!!!!
