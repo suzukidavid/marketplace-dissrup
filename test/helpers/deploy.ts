@@ -1,13 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ethers } from "hardhat";
 import {Contract} from "ethers";
+import {ethers, upgrades} from "hardhat";
 
-export async function deployMarketplace(singer: SignerWithAddress) {
-    const marketplace = await ethers.getContractFactory(
+export async function deployMarketplace(singer: SignerWithAddress, payout: SignerWithAddress) {
+    const Marketplace = await ethers.getContractFactory(
         "Marketplace", 
         singer
         );
-    return marketplace.deploy();
+    return upgrades.deployProxy(Marketplace,[payout.address],{});
 }
 
 export async function deployMockAsset(singer: SignerWithAddress) {

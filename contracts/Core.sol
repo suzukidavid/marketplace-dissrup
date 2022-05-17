@@ -14,7 +14,7 @@ error Core_Amount_Is_Not_Valid_For_ERC721();
 abstract contract Core {
     using ERC165CheckerUpgradeable for address;
 
-    mapping(address => bool) internal saleContractAllowlist;
+    mapping(address => bool) internal _saleContractAllowlist;
 
     function _trasferNFT(
         address from,
@@ -36,7 +36,7 @@ abstract contract Core {
     }
 
     function _addContractAllowlist(address contractAddress) internal {
-        saleContractAllowlist[contractAddress] = true;
+        _saleContractAllowlist[contractAddress] = true;
     }
 
     function _transferERC1155(

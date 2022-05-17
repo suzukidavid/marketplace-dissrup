@@ -12,4 +12,32 @@ contract ERC721CreatorMock is ERC721Creator {
     {
         return ERC721Creator._mintBase(to, uri);
     }
+
+    function setRoyalty(
+        uint256 tokenId,
+        address payable[] calldata payees,
+        uint256[] calldata shares
+    ) public {
+        _setRoyalties(tokenId, payees, shares);
+    }
+
+    function getRoyalty(uint256 tokenId)
+        public
+        view
+        returns (address payable[] memory _payees, uint256[] memory _shares)
+    {
+        (_payees, _shares) = _getRoyalties(tokenId);
+    }
+
+    function getTokenBalance(address account, uint256 token)
+        public
+        view
+        returns (uint256)
+    {
+        address owner = ownerOf(token);
+        if (account == owner) {
+            return 1;
+        }
+        return 0;
+    }
 }

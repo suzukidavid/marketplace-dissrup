@@ -13,4 +13,12 @@ contract ERC1155CreatorMock is ERC1155Creator {
     ) public {
         ERC1155Creator._mint(account, ++_id, amount, data);
     }
+
+    function getTokenBalance(address account, uint256 token)
+        public
+        view
+        returns (uint256 owned)
+    {
+        owned = balanceOf(account, token);
+    }
 }

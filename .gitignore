@@ -3,7 +3,9 @@ node_modules
 coverage
 coverage.json
 typechain
-
+.openzeppelin
+.DS_Store
+yarn-*.log
 #Hardhat files
 cache
 artifacts

@@ -2,40 +2,55 @@
 
 pragma solidity ^0.8.7;
 
+import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import {Constants} from "./Constants.sol";
+
 import {Core} from "./Core.sol";
 
-import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Payment} from "./Payment.sol";
 
 /*
  * @notice revert in case of price below MIN_PRICE
  */
 error Direct_Sale_Price_Too_Low();
 /*
+ * @notice revert in case of nft is no chages
+ */
+error Direct_Sale_params_Did_Not_Changed();
+/*
  * @notice revert in case of nft is been on list
  */
-error Direct_Sale_NFT_Already_Listed();
-
 error Direct_Sale_Not_The_Owner(address msgSender, address seller);
 
 error Direct_Sale_Amount_Cannot_Be_Zero();
 
 error Contract_Address_Is_Not_Approved(address nftAddress);
 
-abstract contract DirectSale is Initializable, Core, Constants {
+error Not_A_Valid_Direct_Sale();
+
+error Required_Amount_To_Big_To_Buy();
+
+error Not_Enough_Ether_To_Buy();
+
+error Not_Valid_Params_For_Update();
+
+abstract contract DirectSale is Initializable, Constants, Core, Payment {
     struct DirectSaleList {
         address seller;
         uint256 amount;
         uint256 price;
     }
+
     uint256 internal _directSaleId;
+
     mapping(address => mapping(uint256 => mapping(uint256 => DirectSaleList)))
         private assetAndSaleIdToDirectSale;
 
-    // function initialize(address _dissrupPayoutAddress) public initializer {
-    // }
     event ListDirectSale(
         uint256 saleId,
         address nftAddress,
@@ -45,15 +60,47 @@ abstract contract DirectSale is Initializable, Core, Constants {
         uint256 price
     );
 
+    event UpdateDirectSale(
+        uint256 saleId,
+        address nftAddress,
+        uint256 tokenId,
+        address seller,
+        uint256 amount,
+        uint256 price
+    );
+
+    event CancelDirectSale(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 saleId,
+        address seller
+    );
+
+    event Buy(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 saleId,
+        uint256 amount,
+        address buyer,
+        address seller
+    );
+
+    function initialize(address dissrupPayout)
+        public
+        virtual
+        override
+        initializer
+    {
+        Payment.initialize(dissrupPayout);
+    }
+
     function listDirectSale(
         address nftAddress,
         uint256 tokenId,
         uint256 amount,
-        uint256 price,
-        uint256 saleId
+        uint256 price
     ) external {
         //} nonReentrant {
-
         if (price < Constants.MIN_PRICE) {
             // revert in case of price below MIN_PRICE
             revert Direct_Sale_Price_Too_Low();
@@ -63,94 +110,191 @@ abstract contract DirectSale is Initializable, Core, Constants {
             // revert in case amount is 0
             revert Direct_Sale_Amount_Cannot_Be_Zero();
         }
-        if (saleContractAllowlist[nftAddress] == false) {
+
+        if (_saleContractAllowlist[nftAddress] == false) {
             // revert in case contract is not approved by dissrup
             revert Contract_Address_Is_Not_Approved(nftAddress);
         }
 
-        address seller;
-        if (saleId == 0) {
-            // new list
-            saleId = ++_directSaleId;
+        DirectSaleList storage directSale = assetAndSaleIdToDirectSale[
+            nftAddress
+        ][tokenId][++_directSaleId];
+
+        address seller = msg.sender;
+
+        // transfer asset to contract
+        _trasferNFT(seller, address(this), nftAddress, tokenId, amount);
+
+        // save to local map  the sale params
+        directSale.seller = seller;
+        directSale.amount = amount;
+        directSale.price = price;
+
+        emit ListDirectSale(
+            _directSaleId,
+            nftAddress,
+            tokenId,
+            seller,
+            amount,
+            price
+        );
+    }
+
+    function updateDirectSale(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 saleId,
+        uint256 amount,
+        uint256 price
+    ) external {
+        DirectSaleList storage directSale = assetAndSaleIdToDirectSale[
+            nftAddress
+        ][tokenId][saleId];
+
+        address seller = directSale.seller;
+
+        if (seller != msg.sender) {
+            //revert in case the msg.sender is not the owner (the lister) of the list
+            revert Direct_Sale_Not_The_Owner(msg.sender, seller);
         }
 
+        if (price == directSale.price && amount == directSale.amount) {
+            //revert in case no changes were made in list (price or amount)
+            revert Direct_Sale_params_Did_Not_Changed();
+        }
+
+        if (amount == 0 || price < MIN_PRICE) {
+            // revert not valid changes
+            revert Not_Valid_Params_For_Update();
+        }
+
+        // add amount to list
+        if (amount > directSale.amount) {
+            // calculate the delta between the listed amount and the required amount
+            uint256 addedAmount = amount - directSale.amount;
+
+            // transfer to marketplace the delta
+            _trasferNFT(
+                seller,
+                address(this),
+                nftAddress,
+                tokenId,
+                addedAmount
+            );
+
+            // update new amount in storage
+            directSale.amount = amount;
+        }
+        // reduce amount of asset
+        else if (amount < directSale.amount) {
+            // calculate the delta between the listed amount and the required amount
+            uint256 reducedAmount = directSale.amount - amount;
+
+            // transfer to seller back the delta amount of tokens
+            _trasferNFT(
+                address(this),
+                seller,
+                nftAddress,
+                tokenId,
+                reducedAmount
+            );
+
+            // update storage
+            directSale.amount = amount;
+        }
+
+        // change price
+        if (price != directSale.price) {
+            // update price in storage
+            directSale.price = price;
+        }
+
+        emit UpdateDirectSale(
+            saleId,
+            nftAddress,
+            tokenId,
+            seller,
+            amount,
+            price
+        );
+    }
+
+    function cancelDirectSale(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 saleId
+    ) external {
+        DirectSaleList memory directSale = assetAndSaleIdToDirectSale[
+            nftAddress
+        ][tokenId][saleId];
+
+        if (msg.sender != directSale.seller) {
+            revert Direct_Sale_Not_The_Owner(msg.sender, directSale.seller);
+        }
+
+        _trasferNFT(
+            address(this),
+            directSale.seller,
+            nftAddress,
+            tokenId,
+            directSale.amount
+        );
+
+        _unlist(nftAddress, tokenId, saleId);
+
+        emit CancelDirectSale(nftAddress, tokenId, saleId, directSale.seller);
+    }
+
+    function buyDirectSale(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 saleId,
+        uint256 amount
+    ) external payable {
         DirectSaleList storage directSale = assetAndSaleIdToDirectSale[
             nftAddress
         ][tokenId][saleId];
 
         if (directSale.seller == address(0)) {
-            //if no seller, it is a new list
-            seller = msg.sender;
-
-            // transfer asset to contract
-            _trasferNFT(seller, address(this), nftAddress, tokenId, amount);
-
-            // save to local map  the sale params
-            directSale.seller = seller;
-            directSale.amount = amount;
-            directSale.price = price;
-        } else {
-            //not new list, update current list
-
-            seller = directSale.seller;
-
-            if (price == directSale.price && amount == directSale.amount) {
-                //revert in case no changes were made in list (price or amount)
-                revert Direct_Sale_NFT_Already_Listed();
-            }
-            if (seller != msg.sender) {
-                //revert in case the msg.sender is not the owner (the lister) of the list
-                revert Direct_Sale_Not_The_Owner(msg.sender, seller);
-            }
-
-            // add amount to list
-            if (amount > directSale.amount) {
-                // calculate the delta between the listed amount and the required amount
-                uint256 addedAmount = amount - directSale.amount;
-
-                // transfer to marketplace the delta
-                _trasferNFT(
-                    seller,
-                    address(this),
-                    nftAddress,
-                    tokenId,
-                    addedAmount
-                );
-
-                // update new amount in storage
-                directSale.amount = amount;
-            }
-            // reduce amount of asset
-            else if (amount < directSale.amount) {
-                // calculate the delta between the listed amount and the required amount
-                uint256 reducedAmount = directSale.amount - amount;
-
-                // transfer to seller back the delta amount of tokens
-                _trasferNFT(
-                    address(this),
-                    seller,
-                    nftAddress,
-                    tokenId,
-                    reducedAmount
-                );
-
-                // update storage
-                directSale.amount = amount;
-            }
-
-            // change price
-            if (price != directSale.price) {
-                // update price in storage
-                directSale.price = price;
-            }
+            // revert in case of a direct sale list is not exist
+            revert Not_A_Valid_Direct_Sale();
         }
-        emit ListDirectSale(saleId, nftAddress, tokenId, seller, amount, price);
+
+        if (directSale.amount < amount) {
+            // revert in case the require to buy is more then exist in marketplace
+            revert Required_Amount_To_Big_To_Buy();
+        }
+
+        uint256 totalPrice = directSale.price * amount;
+        address buyer = msg.sender;
+        uint256 payment = msg.value;
+
+        if (payment < totalPrice) {
+            revert Not_Enough_Ether_To_Buy();
+        }
+
+        if (payment > totalPrice) {
+            uint256 refund = payment - totalPrice;
+            payable(buyer).transfer(refund);
+        }
+
+        _trasferNFT(address(this), buyer, nftAddress, tokenId, amount);
+
+        directSale.amount = directSale.amount - amount;
+
+        _splitPayment(directSale.seller, totalPrice, nftAddress, tokenId);
+
+        emit Buy(nftAddress, tokenId, saleId, amount, buyer, directSale.seller);
+
+        if (directSale.amount == 0) {
+            _unlist(nftAddress, tokenId, saleId);
+        }
     }
 
     function _unlist(
-        uint256 saleId,
         address nftAddress,
-        uint256 tokenId
+        uint256 tokenId,
+        uint256 saleId
     ) internal {
         delete assetAndSaleIdToDirectSale[nftAddress][tokenId][saleId];
     }
