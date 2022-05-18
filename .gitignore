@@ -12,3 +12,4 @@ artifacts
 
 .vscode
 arguments.js
+gasReporterOutput.json
