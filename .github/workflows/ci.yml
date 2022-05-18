@@ -28,7 +28,7 @@ jobs:
     name: gas report
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout
+      - uses: actions/checkout@0.1.12
       - name: yarn
         run: |
           yarn install --frozen-lockfile
