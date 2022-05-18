@@ -17,7 +17,7 @@ import {
   deployMockERC721Creator,
 } from "./helpers/deploy";
 
-import { changedTokenBalanceInContract } from "./helpers/utils";
+import { checkTokenBalances } from "./helpers/utils";
 
 describe("DirectSale", function () {
   let deployer: SignerWithAddress;
@@ -101,13 +101,12 @@ describe("DirectSale", function () {
       await expect(receipt)
         .to.be.emit(Marketplace, "ListDirectSale")
         .withArgs(1, ERC721CreatorMock.address, 1, creator.address, 1, 2000);
-      const verifyChangeTokenBalances = await changedTokenBalanceInContract(
-        ERC721CreatorMock,
-        1,
-        creator,
-        [creator, Marketplace],
-        [0, 1]
-      );
+      const verifyChangeTokenBalances = await checkTokenBalances({
+        assetContract: ERC721CreatorMock,
+        tokenId: 1,
+        accounts: [creator, Marketplace],
+        expectAmounts: [0, 1],
+      });
 
       expect(verifyChangeTokenBalances).to.be.equal(true);
     });
@@ -137,13 +136,12 @@ describe("DirectSale", function () {
         .withArgs(1, ERC1155CreatorMock.address, 1, creator.address, 10, 3000);
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [0, 10]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [0, 10],
+        })
       ).to.be.true;
     });
 
@@ -209,13 +207,12 @@ describe("DirectSale", function () {
         .withArgs(1, ERC1155CreatorMock.address, 1, creator.address, 10, 2000);
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [0, 10]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [0, 10],
+        })
       ).to.be.true;
     });
 
@@ -251,13 +248,12 @@ describe("DirectSale", function () {
         .withArgs(1, ERC1155CreatorMock.address, 1, creator.address, 5, 2000);
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [5, 5]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [5, 5],
+        })
       ).to.be.true;
     });
 
@@ -290,13 +286,12 @@ describe("DirectSale", function () {
         .withArgs(ERC721CreatorMock.address, 1, 1, creator.address);
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [1, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [1, 0],
+        })
       ).to.be.true;
     });
 
@@ -319,17 +314,16 @@ describe("DirectSale", function () {
       );
 
       await expect(receipt).to.be.revertedWith(
-        `Contract_Address_Is_Not_Approved\(\"${UnapprovedContract.address}\"`
+        `Direct_Sale_Contract_Address_Is_Not_Approved\(\"${UnapprovedContract.address}\"`
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          UnapprovedContract,
-          1,
-          creator,
-          [creator, Marketplace],
-          [1, 0]
-        )
+        await checkTokenBalances({
+          assetContract: UnapprovedContract,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [1, 0],
+        })
       ).to.be.true;
     });
 
@@ -380,13 +374,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [10, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [10, 0],
+        })
       ).to.be.true;
     });
 
@@ -411,13 +404,12 @@ describe("DirectSale", function () {
       await expect(receipt).to.be.revertedWith("Direct_Sale_Price_Too_Low()");
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [1, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [1, 0],
+        })
       ).to.be.true;
     });
 
@@ -450,13 +442,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [0, 1]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [0, 1],
+        })
       ).to.be.true;
     });
 
@@ -514,13 +505,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [1, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [1, 0],
+        })
       ).to.be.true;
     });
 
@@ -556,13 +546,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [5, 5]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [5, 5],
+        })
       ).to.be.true;
     });
 
@@ -593,16 +582,17 @@ describe("DirectSale", function () {
         2000
       );
 
-      await expect(receipt).to.be.revertedWith("Not_Valid_Params_For_Update()");
+      await expect(receipt).to.be.revertedWith(
+        "Direct_Sale_Not_Valid_Params_For_Update()"
+      );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [0, 10]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [0, 10],
+        })
       ).to.be.true;
     });
 
@@ -632,16 +622,17 @@ describe("DirectSale", function () {
         20
       );
 
-      await expect(receipt).to.be.revertedWith("Not_Valid_Params_For_Update()");
+      await expect(receipt).to.be.revertedWith(
+        "Direct_Sale_Not_Valid_Params_For_Update()"
+      );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, Marketplace],
-          [0, 1]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, Marketplace],
+          expectAmounts: [0, 1],
+        })
       ).to.be.true;
     });
   });
@@ -734,13 +725,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, collector, Marketplace],
-          [0, 1, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, collector, Marketplace],
+          expectAmounts: [0, 1, 0],
+        })
       ).to.be.true;
     });
 
@@ -839,13 +829,12 @@ describe("DirectSale", function () {
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC1155CreatorMock,
-          1,
-          creator,
-          [creator, collector, otherCollector, Marketplace],
-          [0, 5, 5, 0]
-        )
+        await checkTokenBalances({
+          assetContract: ERC1155CreatorMock,
+          tokenId: 1,
+          accounts: [creator, collector, otherCollector, Marketplace],
+          expectAmounts: [0, 5, 5, 0],
+        })
       ).to.be.true;
     });
 
@@ -887,16 +876,17 @@ describe("DirectSale", function () {
         { value: 1000 }
       );
 
-      await expect(receipt).to.be.revertedWith("Not_Enough_Ether_To_Buy()");
+      await expect(receipt).to.be.revertedWith(
+        "Direct_Sale_Not_Enough_Ether_To_Buy()"
+      );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, collector, Marketplace],
-          [0, 0, 1]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, collector, Marketplace],
+          expectAmounts: [0, 0, 1],
+        })
       ).to.be.true;
     });
 
@@ -916,7 +906,9 @@ describe("DirectSale", function () {
         { value: 2000 }
       );
 
-      await expect(receipt).to.be.revertedWith("Not_A_Valid_Direct_Sale()");
+      await expect(receipt).to.be.revertedWith(
+        "Direct_Sale_Not_A_Valid_Params_For_Buy()"
+      );
     });
 
     it("cannot buy if amount to big", async function () {
@@ -936,17 +928,16 @@ describe("DirectSale", function () {
       );
 
       await expect(receipt).to.be.revertedWith(
-        "Required_Amount_To_Big_To_Buy()"
+        "Direct_Sale_Required_Amount_To_Big_To_Buy()"
       );
 
       expect(
-        await changedTokenBalanceInContract(
-          ERC721CreatorMock,
-          1,
-          creator,
-          [creator, collector, Marketplace],
-          [0, 0, 1]
-        )
+        await checkTokenBalances({
+          assetContract: ERC721CreatorMock,
+          tokenId: 1,
+          accounts: [creator, collector, Marketplace],
+          expectAmounts: [0, 0, 1],
+        })
       ).to.be.true;
     });
   });

@@ -8,7 +8,10 @@
     "clean": "yarn hardhat clean"
   },
   "keywords": [],
-  "author": "yuvalschneider",
+  "contributors": [
+    "yuval@yuvalschneider.com",
+    "yuvalFishler"
+  ],
   "license": "ISC",
   "devDependencies": {
     "@manifoldxyz/creator-core-solidity": "^1.0.4",
@@ -22,6 +25,7 @@
     "@types/node": "^12.20.47",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
+    "@openzeppelin/hardhat-upgrades": "^1.10.0",
     "chai": "^4.3.6",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",
@@ -44,7 +48,6 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts-upgradeable": "^4.6.0",
-    "@openzeppelin/hardhat-upgrades": "^1.10.0"
+    "@openzeppelin/contracts-upgradeable": "^4.6.0"
   }
 }

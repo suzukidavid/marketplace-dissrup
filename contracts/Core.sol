@@ -9,6 +9,7 @@ import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/to
 import {IERC1155ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
 
 error Not_Valid_Contract();
+
 error Core_Amount_Is_Not_Valid_For_ERC721();
 
 abstract contract Core {
@@ -33,6 +34,23 @@ abstract contract Core {
         } else {
             revert Not_Valid_Contract();
         }
+    }
+
+    function _transferAdditionalNFTs(
+        address from,
+        address to,
+        address nftAddress,
+        uint256 tokenId,
+        uint256 currentAmount,
+        uint256 requiredAmount
+    ) internal {
+        uint256 amount;
+        if (currentAmount > requiredAmount) {
+            amount = currentAmount - requiredAmount;
+        } else {
+            amount = requiredAmount - currentAmount;
+        }
+        _trasferNFT(from, to, nftAddress, tokenId, amount);
     }
 
     function _addContractAllowlist(address contractAddress) internal {

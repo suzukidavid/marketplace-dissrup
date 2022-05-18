@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.7;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import {ERC165CheckerUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
@@ -20,7 +18,7 @@ interface IRoyalties {
         returns (address payable[] memory, uint256[] memory);
 }
 
-abstract contract Payment is Initializable, Constants {
+abstract contract Payment is Constants {
     address internal _dissrupPayout;
     uint256 internal _dissrupBasisPoint;
 
@@ -31,11 +29,7 @@ abstract contract Payment is Initializable, Constants {
     using ERC165CheckerUpgradeable for address;
     event PayToRoyalties(address payable[] payees, uint256[] shares);
 
-    function initialize(address dissrupPayout) public virtual initializer {
-        _dissrupPayout = dissrupPayout;
-    }
-
-    function _setDissrupPayment(address dissrupPayout) internal {
+    function _setDissrupPayment(address dissrupPayout) internal virtual {
         _dissrupPayout = dissrupPayout;
     }
 
@@ -91,7 +85,7 @@ abstract contract Payment is Initializable, Constants {
         // fix to 100% (from `1000` to `10`)
         uint256 shareFixedBasisPoint = SafeMathUpgradeable.div(
             share,
-            ROYALTIES_BASIS_POINT
+            MANIFOLD_ROYALTIES_BASIS_POINT
         );
 
         uint256 oneShare = SafeMathUpgradeable.div(price, 100);

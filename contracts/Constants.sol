@@ -10,5 +10,5 @@ abstract contract Constants {
     /**
      * @notice the shares in manifold come in diffrant basis so need to be divided by offset (from 5000 to 50%)
      */
-    uint256 internal constant ROYALTIES_BASIS_POINT = 100;
+    uint256 internal constant MANIFOLD_ROYALTIES_BASIS_POINT = 100;
 }

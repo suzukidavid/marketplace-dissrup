@@ -2,11 +2,7 @@
 
 pragma solidity ^0.8.7;
 
-import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import {Constants} from "./Constants.sol";
 
@@ -29,15 +25,15 @@ error Direct_Sale_Not_The_Owner(address msgSender, address seller);
 
 error Direct_Sale_Amount_Cannot_Be_Zero();
 
-error Contract_Address_Is_Not_Approved(address nftAddress);
+error Direct_Sale_Contract_Address_Is_Not_Approved(address nftAddress);
 
-error Not_A_Valid_Direct_Sale();
+error Direct_Sale_Not_A_Valid_Params_For_Buy();
 
-error Required_Amount_To_Big_To_Buy();
+error Direct_Sale_Required_Amount_To_Big_To_Buy();
 
-error Not_Enough_Ether_To_Buy();
+error Direct_Sale_Not_Enough_Ether_To_Buy();
 
-error Not_Valid_Params_For_Update();
+error Direct_Sale_Not_Valid_Params_For_Update();
 
 abstract contract DirectSale is Initializable, Constants, Core, Payment {
     struct DirectSaleList {
@@ -85,15 +81,6 @@ abstract contract DirectSale is Initializable, Constants, Core, Payment {
         address seller
     );
 
-    function initialize(address dissrupPayout)
-        public
-        virtual
-        override
-        initializer
-    {
-        Payment.initialize(dissrupPayout);
-    }
-
     function listDirectSale(
         address nftAddress,
         uint256 tokenId,
@@ -113,7 +100,7 @@ abstract contract DirectSale is Initializable, Constants, Core, Payment {
 
         if (_saleContractAllowlist[nftAddress] == false) {
             // revert in case contract is not approved by dissrup
-            revert Contract_Address_Is_Not_Approved(nftAddress);
+            revert Direct_Sale_Contract_Address_Is_Not_Approved(nftAddress);
         }
 
         DirectSaleList storage directSale = assetAndSaleIdToDirectSale[
@@ -165,38 +152,28 @@ abstract contract DirectSale is Initializable, Constants, Core, Payment {
 
         if (amount == 0 || price < MIN_PRICE) {
             // revert not valid changes
-            revert Not_Valid_Params_For_Update();
+            revert Direct_Sale_Not_Valid_Params_For_Update();
         }
-
-        // add amount to list
         if (amount > directSale.amount) {
-            // calculate the delta between the listed amount and the required amount
-            uint256 addedAmount = amount - directSale.amount;
-
-            // transfer to marketplace the delta
-            _trasferNFT(
+            // add amount to list
+            _transferAdditionalNFTs(
                 seller,
                 address(this),
                 nftAddress,
                 tokenId,
-                addedAmount
+                directSale.amount,
+                amount
             );
-
-            // update new amount in storage
-            directSale.amount = amount;
         }
         // reduce amount of asset
         else if (amount < directSale.amount) {
-            // calculate the delta between the listed amount and the required amount
-            uint256 reducedAmount = directSale.amount - amount;
-
-            // transfer to seller back the delta amount of tokens
-            _trasferNFT(
+            _transferAdditionalNFTs(
                 address(this),
                 seller,
                 nftAddress,
                 tokenId,
-                reducedAmount
+                directSale.amount,
+                amount
             );
 
             // update storage
@@ -257,12 +234,12 @@ abstract contract DirectSale is Initializable, Constants, Core, Payment {
 
         if (directSale.seller == address(0)) {
             // revert in case of a direct sale list is not exist
-            revert Not_A_Valid_Direct_Sale();
+            revert Direct_Sale_Not_A_Valid_Params_For_Buy();
         }
 
         if (directSale.amount < amount) {
             // revert in case the require to buy is more then exist in marketplace
-            revert Required_Amount_To_Big_To_Buy();
+            revert Direct_Sale_Required_Amount_To_Big_To_Buy();
         }
 
         uint256 totalPrice = directSale.price * amount;
@@ -270,7 +247,7 @@ abstract contract DirectSale is Initializable, Constants, Core, Payment {
         uint256 payment = msg.value;
 
         if (payment < totalPrice) {
-            revert Not_Enough_Ether_To_Buy();
+            revert Direct_Sale_Not_Enough_Ether_To_Buy();
         }
 
         if (payment > totalPrice) {

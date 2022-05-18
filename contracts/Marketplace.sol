@@ -34,17 +34,12 @@ contract Marketplace is Initializable, DirectSale, AccessControlUpgradeable {
     // @custom:oz-upgrades-unsafe-allow constructor
     //constructor() initializer {}
 
-    function initialize(address dissrupPayout)
-        public
-        virtual
-        override
-        initializer
-    {
+    function initialize(address dissrupPayout) public initializer {
         __AccessControl_init_unchained();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        DirectSale.initialize(dissrupPayout);
+        super._setDissrupPayment(dissrupPayout);
     }
 
     function addContractAllowlist(
