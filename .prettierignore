@@ -1,6 +1,5 @@
 node_modules
 artifacts
 cache
-# form pay-on-mint not sure if needed 
-# coverage*
+coverage*
 # gasReporterOutput.json
