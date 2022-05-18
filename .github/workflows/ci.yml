@@ -25,7 +25,7 @@ jobs:
           run: yarn & CI=true yarn test
 
   build-and-codechecks:
-    name: build and run codechecks
+    name: gas report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
