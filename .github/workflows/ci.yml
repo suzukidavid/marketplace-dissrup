@@ -22,8 +22,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-      - run: yarn
-      - run: yarn build
-      - run: CI=true yarn test
-      - run: yarn codechecks
-      - env: CC_SECRET: ${{ secrets.CC_SECRET }}
+          run: yarn
+          run: yarn build
+          run: CI=true yarn test
+
+      - name: Install dependencies, lint
+        with:
+          run: yarn codechecks
+          env: CC_SECRET: ${{ secrets.CC_SECRET }}
