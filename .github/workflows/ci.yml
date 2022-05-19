@@ -7,7 +7,7 @@ on: [push]
 concurrency: ci
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -24,12 +24,15 @@ jobs:
           cache: "yarn"
           run: yarn & CI=true yarn test
 
-  build-and-codechecks:
+  gas-reporter:
+    needs: test
     name: gas report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: yarn
+        cache: "yarn"
+
         run: |
           CI=true yarn test
           yarn codechecks
