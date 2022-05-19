@@ -30,8 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: npx
+      - name: yarn
         run: |
-          npx codechecks
+          yarn codechecks
+
         env:
           CC_SECRET: ${{ secrets.CC_SECRET }}
