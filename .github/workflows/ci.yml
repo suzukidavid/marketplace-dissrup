@@ -19,10 +19,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-          run: yarn & CI=true yarn test
 
   gas-reporter:
     needs: test
@@ -30,10 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: yarn
-        run: |
-          yarn add codechecks
-          yarn codechecks
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+          run: yarn codechecks
 
         env:
           CC_SECRET: ${{ secrets.CC_SECRET }}
