@@ -31,10 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: yarn
-        cache: "yarn"
-
         run: |
-          CI=true yarn test
           yarn codechecks
         env:
           CC_SECRET: ${{ secrets.CC_SECRET }}
